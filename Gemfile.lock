@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    attribute_defaults (0.1)
+    attribute_defaults (0.2)
       activerecord (>= 3)
 
 GEM

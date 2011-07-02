@@ -5,7 +5,7 @@ require "rspec"
 require "active_record"
 require "active_record/base"
 
-require File.expand_path("../../lib/active_record/attribute_defaults", __FILE__)
+require File.expand_path("../../lib/attribute_defaults", __FILE__)
 
 ActiveRecord::Base.configurations = YAML::load(IO.read(File.dirname(__FILE__) + "/database.yml"))
 ActiveRecord::Base.logger = ActiveSupport::BufferedLogger.new(File.dirname(__FILE__) + "/debug.log")

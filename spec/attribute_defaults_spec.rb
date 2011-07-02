@@ -1,6 +1,6 @@
 require "spec_helper"
 
-describe "active_record/attribute_defaults" do
+describe "attribute_defaults" do
   it "should supply defaults for a new record" do
     p = Person.new
     
