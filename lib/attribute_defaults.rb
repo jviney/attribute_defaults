@@ -82,51 +82,49 @@ module AttributeDefaults
     
     alias_method :default, :defaults
   end
-  
-  module InstanceMethods
-    if ActiveRecord::VERSION::STRING >= "3.1"
-      def initialize_with_defaults(attributes = nil, options = {})
-        initialize_without_defaults(attributes, options) do |record|
-          record.apply_default_attribute_values(attributes)
-          yield record if block_given?
-        end
-      end
-    else
-      def initialize_with_defaults(attributes = nil)
-        initialize_without_defaults(attributes) do |record|
-          record.apply_default_attribute_values(attributes)
-          yield record if block_given?
-        end
+
+  if ActiveRecord::VERSION::STRING >= "3.1"
+    def initialize_with_defaults(attributes = nil, options = {})
+      initialize_without_defaults(attributes, options) do |record|
+        record.apply_default_attribute_values(attributes)
+        yield record if block_given?
       end
     end
-    
-    def apply_default_attribute_values(specific_attributes)
-      specific_attributes = (specific_attributes || {}).stringify_keys
-      
-      # Rails 3.1 deprecates #primary_key_name in favour of :foreign_key
-      foreign_key_method = if ActiveRecord::VERSION::STRING >= "3.1"
-        :foreign_key
-      else
-        :primary_key_name
+  else
+    def initialize_with_defaults(attributes = nil)
+      initialize_without_defaults(attributes) do |record|
+        record.apply_default_attribute_values(attributes)
+        yield record if block_given?
       end
-      
-      self.class.attribute_defaults.each do |default|
-        next if specific_attributes.include?(default.attribute)
-        
-        # Ignore a default value for association_id if association has been specified
-        reflection = self.class.reflections[default.attribute.to_sym]
-        if reflection and reflection.macro == :belongs_to and specific_attributes.include?(reflection.send(foreign_key_method).to_s)
-          next
-        end
-        
-        # Ignore a default value for association if association_id has been specified
-        reflection = self.class.reflections.values.find { |r| r.macro == :belongs_to && r.send(foreign_key_method).to_s == default.attribute }
-        if reflection and specific_attributes.include?(reflection.name.to_s)
-          next
-        end
-        
-        send("#{default.attribute}=", default.value(self))
+    end
+  end
+
+  def apply_default_attribute_values(specific_attributes)
+    specific_attributes = (specific_attributes || {}).stringify_keys
+
+    # Rails 3.1 deprecates #primary_key_name in favour of :foreign_key
+    foreign_key_method = if ActiveRecord::VERSION::STRING >= "3.1"
+      :foreign_key
+    else
+      :primary_key_name
+    end
+
+    self.class.attribute_defaults.each do |default|
+      next if specific_attributes.include?(default.attribute)
+
+      # Ignore a default value for association_id if association has been specified
+      reflection = self.class.reflections[default.attribute.to_sym]
+      if reflection and reflection.macro == :belongs_to and specific_attributes.include?(reflection.send(foreign_key_method).to_s)
+        next
       end
+
+      # Ignore a default value for association if association_id has been specified
+      reflection = self.class.reflections.values.find { |r| r.macro == :belongs_to && r.send(foreign_key_method).to_s == default.attribute }
+      if reflection and specific_attributes.include?(reflection.name.to_s)
+        next
+      end
+
+      send("#{default.attribute}=", default.value(self))
     end
   end
 end
