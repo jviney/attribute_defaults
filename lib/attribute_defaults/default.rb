@@ -10,7 +10,11 @@ module AttributeDefaults
       if @value.is_a?(Symbol)
         record.send(@value)
       elsif @value.respond_to?(:call)
-        @value.call(record)
+        if @value.arity == 0
+          @value.call
+        else
+          @value.call(record)
+        end
       else
         @value.duplicable? ? @value.dup : @value
       end

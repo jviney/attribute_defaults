@@ -1,6 +1,4 @@
 require "active_support/concern"
-require "active_support/core_ext/module/aliasing"
-require "active_support/core_ext/class/attribute"
 
 require "attribute_defaults/default"
 
@@ -8,8 +6,6 @@ module AttributeDefaults
   extend ActiveSupport::Concern
   
   included do
-    alias_method_chain :initialize, :defaults
-    
     class_attribute :attribute_defaults
     self.attribute_defaults = []
   end
@@ -83,31 +79,16 @@ module AttributeDefaults
     alias_method :default, :defaults
   end
 
-  if ActiveRecord::VERSION::STRING >= "3.1"
-    def initialize_with_defaults(attributes = nil, options = {})
-      initialize_without_defaults(attributes, options) do |record|
-        record.apply_default_attribute_values(attributes)
-        yield record if block_given?
-      end
-    end
-  else
-    def initialize_with_defaults(attributes = nil)
-      initialize_without_defaults(attributes) do |record|
-        record.apply_default_attribute_values(attributes)
-        yield record if block_given?
-      end
+  def initialize(attributes = nil, options = {})
+    super do |record|
+      record.apply_default_attribute_values(attributes)
+      yield record if block_given?
     end
   end
 
   def apply_default_attribute_values(specific_attributes)
     specific_attributes = (specific_attributes || {}).stringify_keys
-
-    # Rails 3.1 deprecates #primary_key_name in favour of :foreign_key
-    foreign_key_method = if ActiveRecord::VERSION::STRING >= "3.1"
-      :foreign_key
-    else
-      :primary_key_name
-    end
+    foreign_key_method = :foreign_key
 
     self.class.attribute_defaults.each do |default|
       next if specific_attributes.include?(default.attribute)

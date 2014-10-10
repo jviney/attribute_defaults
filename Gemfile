@@ -1,5 +1,5 @@
 source "http://rubygems.org"
-gemspec
 
-gem "rspec"
-gem "mysql2"
+gem 'activerecord', '>= 4.1.0'
+gem 'mysql2'
+gem 'rspec'
